@@ -1,0 +1,85 @@
+---
+- name: Set LCM update list to specific software
+  set_fact:
+    nutanix_lcm_sw_update_list: "{{ nutanix_lcm_sw_update_list | default([]) + [item] }}"
+  loop: "{{ software_target_entity_list }}"
+  when:
+    - nutanix_lcm_software_to_update is defined
+    - item.entityModel in nutanix_lcm_software_to_update | default([])
+
+- name: Debug nutanix_lcm_sw_update_list
+  debug:
+    var: nutanix_lcm_sw_update_list
+  when:
+    - nutanix_debug
+
+- name: Debug update recommendations POST body
+  debug:
+    msg: "{{ lookup('template', 'lcm-req.j2') | from_yaml | to_json }}"
+  when:
+    - nutanix_debug
+
+- name: Get LCM software update recommendations
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/recommendations"
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    body: "{{ lookup('template', 'lcm-req.j2') | from_yaml | to_json }}"
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+    status_code: 200
+    return_content: true
+  register: nutanix_lcm_update_recommendations
+  ignore_errors: false
+
+- name: Debug nutanix_lcm_update_recommendations.json
+  debug:
+    var: nutanix_lcm_update_recommendations.json
+  when:
+    - nutanix_debug
+
+- name: Debug nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs
+  debug:
+    msg: "{{ nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
+  when:
+    - nutanix_debug
+
+- name: Generate software update plan
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/plan"
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    body:
+      entityUpdateSpecs: "{{ nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+    status_code: 200
+    return_content: true
+  register: nutanix_lcm_update_plan
+  ignore_errors: false
+  when:
+    - nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length > 0
+
+- name: Debug nutanix_lcm_update_plan
+  debug:
+    var: nutanix_lcm_update_plan.json
+  when:
+    - nutanix_debug
+
+- name: Anticipated LCM actions during software upgrade
+  debug:
+    msg: "{{ nutanix_lcm_update_plan.json.data.hostUpgradePlans | json_query('[].action') | unique | list }}"
+  when:
+    - nutanix_lcm_update_plan.json.data.hostUpgradePlans | default([]) | length > 0
+
+- name: Run LCM software update pre-checks
+  import_tasks: lcm_precheck.yml
+  when:
+    - nutanix_lcm_run_precheck
+    - nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length > 0
+
+- name: Run LCM software update
+  import_tasks: lcm_update.yml
+  when: nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length > 0

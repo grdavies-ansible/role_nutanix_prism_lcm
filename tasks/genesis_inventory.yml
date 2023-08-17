@@ -1,0 +1,74 @@
+---
+- name: Run LCM Initial Inventory
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/PrismGateway/services/rest/v1/genesis"
+    body:
+      value: '{".oid":"LifeCycleManager",".method":"lcm_framework_rpc",".kwargs":{"method_class":"LcmFramework","method":"perform_inventory","args":["http: //download.nutanix.com/lcm/2.0"]}}'
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    status_code: 200
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+  register: nutanix_lcm_initial_inventory_result
+  ignore_errors: false
+
+- name: Debug nutanix_lcm_initial_inventory_result.json
+  debug:
+    var: nutanix_lcm_initial_inventory_result.json
+  when:
+    - nutanix_debug
+
+- name: Set nutanix_lcm_initial_inventory_result_value
+  set_fact:
+    nutanix_lcm_initial_inventory_result_value: "{{ nutanix_lcm_initial_inventory_result.json | community.general.json_query(query) | to_json | from_json }}"
+  vars:
+    query: "value"
+
+- name: Debug nutanix_lcm_initial_inventory_result_value
+  debug:
+    var: nutanix_lcm_initial_inventory_result_value
+  when:
+    - nutanix_debug
+
+- name: Store LCM inventory task uuid
+  set_fact:
+    nutanix_lcm_initial_inventory_task_uuid: "{{ nutanix_lcm_initial_inventory_result_value | community.general.json_query(query) }}"
+  vars:
+    query: '".return"'
+
+- name: Debug nutanix_lcm_initial_inventory_task_uuid
+  debug:
+    var: nutanix_lcm_initial_inventory_task_uuid
+  when:
+    - nutanix_debug
+
+- name: Store LCM inventory task status
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/PrismGateway/services/rest/v2.0/tasks/{{ nutanix_lcm_initial_inventory_task_uuid }}"
+    method: GET
+    validate_certs: "{{ validate_certs }}"
+    status_code: 200
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+  register: nutanix_lcm_initial_inventory_task_status_debug
+
+- name: Debug nutanix_lcm_initial_inventory_task_status_debug.json
+  debug:
+    var: nutanix_lcm_initial_inventory_task_status_debug.json
+  when:
+    - nutanix_debug
+
+- name: Wait for LCM inventory task to complete
+  ansible.builtin.import_role:
+    name: grdavies.role_nutanix_prism_monitor_task
+  vars:
+    nutanix_task_uuid: "{{ nutanix_lcm_initial_inventory_task_uuid }}"
+
+- name: Set nutanix_lcm_initial_inventory_task_status
+  set_fact:
+    nutanix_lcm_initial_inventory_task_status: "{{ monitored_task }}"
+
+- name: Pause for 30 seconds allow new LCM upgrade to become available
+  ansible.builtin.pause:
+    seconds: 30

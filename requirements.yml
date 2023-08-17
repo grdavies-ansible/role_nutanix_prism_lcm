@@ -1,0 +1,4 @@
+---
+# ansible-galaxy install -r requirements.yml
+roles:
+  - name: grdavies.role_nutanix_prism_monitor_task

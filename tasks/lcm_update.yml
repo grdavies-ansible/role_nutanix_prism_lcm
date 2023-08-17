@@ -1,0 +1,56 @@
+---
+- name: LCM update
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/operations/$actions/performUpdate"
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    body:
+      entityUpdateSpecs: "{{ nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+    status_code: 200
+    return_content: true
+  register: nutanix_lcm_update
+  ignore_errors: false
+
+- name: Debug nutanix_lcm_update.json
+  debug:
+    var: nutanix_lcm_update.json
+  when:
+    - nutanix_debug
+
+- name: Debug task status url
+  debug:
+    msg: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/tasks/{{ nutanix_lcm_update.json.data.extId }}"
+  when:
+    - nutanix_debug
+
+- name: Checking LCM update task status
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/tasks/{{ nutanix_lcm_update.json.data.extId }}"
+    method: GET
+    validate_certs: "{{ validate_certs }}"
+    status_code: 200
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+  register: nutanix_lcm_update_task_debug
+
+- name: Debug nutanix_lcm_update_task_debug.json
+  debug:
+    var: nutanix_lcm_update_task_debug.json
+  when:
+    - nutanix_debug
+
+- name: Wait for LCM update task to complete
+  ansible.builtin.import_role:
+    name: grdavies.role_nutanix_prism_monitor_task
+  vars:
+    nutanix_task_uuid: "{{ nutanix_lcm_update.json.data.extId }}"
+    nutanix_task_retries: "{{ nutanix_lcm_retries * nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length }}"
+    nutanix_task_retry_delay: "{{ nutanix_lcm_delay }}"
+    nutanix_task_allow_failure: true
+
+- name: Set nutanix_lcm_update_task
+  set_fact:
+    nutanix_lcm_update_task: "{{ monitored_task }}"

@@ -1,0 +1,6 @@
+tasks/api_inventory.yml var-naming[no-role-prefix]
+tasks/genesis_inventory.yml var-naming[no-role-prefix]
+tasks/genesis_inventory.yml yaml[line-length]
+tasks/lcm_precheck.yml var-naming[no-role-prefix]
+tasks/lcm_update.yml var-naming[no-role-prefix]
+tasks/update_firmware.yml var-naming[no-reserved]

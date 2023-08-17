@@ -1,0 +1,49 @@
+---
+- name: LCM update pre-check
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/operations/$actions/performPrecheck"
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    body:
+      entityUpdateSpecs: "{{ nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+    status_code: 200
+    return_content: true
+  register: nutanix_lcm_update_precheck
+  ignore_errors: false
+
+- name: Debug nutanix_lcm_update_precheck.json
+  debug:
+    var: nutanix_lcm_update_precheck.json
+  when:
+    - nutanix_debug
+
+- name: Checking LCM pre-check task status
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/tasks/{{ nutanix_lcm_update_precheck.json.data.extId }}"
+    method: GET
+    validate_certs: "{{ validate_certs }}"
+    status_code: 200
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+  register: nutanix_lcm_update_precheck_task_debug
+
+- name: Debug nutanix_lcm_update_precheck_task_debug.json
+  debug:
+    var: nutanix_lcm_update_precheck_task_debug.json
+  when:
+    - nutanix_debug
+
+- name: Wait for LCM update pre-check task to complete
+  ansible.builtin.import_role:
+    name: grdavies.role_nutanix_prism_monitor_task
+  vars:
+    nutanix_task_uuid: "{{ nutanix_lcm_update_precheck.json.data.extId }}"
+    nutanix_task_retries: 30
+    nutanix_task_retry_delay: 30
+
+- name: Set nutanix_lcm_update_precheck_task
+  set_fact:
+    nutanix_lcm_update_precheck_task: "{{ monitored_task }}"

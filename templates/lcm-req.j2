@@ -1,0 +1,5 @@
+{% if nutanix_lcm_sw_update_list | default([]) | length > 0%}
+targetEntities: {{ nutanix_lcm_sw_update_list }}
+{% else %}
+entityTypes: ["software"]
+{% endif %}

@@ -1,0 +1,39 @@
+---
+- name: Run LCM Inventory
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/operations/$actions/performInventory"
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+    status_code: 200
+    return_content: true
+  register: nutanix_lcm_inventory_result
+  ignore_errors: false
+
+- name: Debug nutanix_lcm_inventory_result.json
+  debug:
+    var: nutanix_lcm_inventory_result.json
+  when:
+    - nutanix_debug
+
+- name: Store LCM inventory task uuid
+  set_fact:
+    nutanix_lcm_inventory_task_uuid: "{{ nutanix_lcm_inventory_result.json.data.extId }}"
+
+- name: Debug nutanix_lcm_initial_inventory_task_uuid
+  debug:
+    var: nutanix_lcm_inventory_task_uuid
+  when:
+    - nutanix_debug
+
+- name: Wait for LCM inventory task to complete
+  ansible.builtin.import_role:
+    name: grdavies.role_nutanix_prism_monitor_task
+  vars:
+    nutanix_task_uuid: "{{ nutanix_lcm_inventory_task_uuid }}"
+
+- name: Set nutanix_lcm_task_status
+  set_fact:
+    nutanix_lcm_task_status: "{{ monitored_task }}"

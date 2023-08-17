@@ -1,0 +1,64 @@
+---
+- name: Get LCM update recommendations for firmware
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/recommendations"
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    body:
+      entityTypes: ["firmware"]
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+    status_code: 200
+    return_content: true
+  register: nutanix_lcm_update_recommendations
+  ignore_errors: false
+
+- name: Debug nutanix_lcm_update_recommendations.json
+  debug:
+    var: nutanix_lcm_update_recommendations.json
+  when:
+    - nutanix_debug
+
+- name: Generate firmware update plan
+  uri:
+    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/plan"
+    method: POST
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    body: "{{ nutanix_lcm_update_recommendations.json.data.entity_update_spec_list }}"
+    headers:
+      Authorization: "{{ nutanix_api_auth }}"
+    status_code: 200
+    return_content: true
+  register: nutanix_lcm_update_plan
+  ignore_errors: false
+  when:
+    - nutanix_lcm_update_recommendations.json.data.entity_update_spec_list | default([]) | length > 0
+
+- name: Debug nutanix_lcm_update_plan.json
+  debug:
+    var: nutanix_lcm_update_plan.json
+  when:
+    - nutanix_debug
+
+- name: Anticipated LCM actions during firmware upgrade
+  debug:
+    msg: "{{ nutanix_lcm_update_plan.json.data.hostplan_list | json_query('[].action') | unique | list }}"
+  when:
+    - nutanix_lcm_update_recommendations.json.data.entity_update_spec_list | default([]) | length > 0
+
+- name: Run LCM firmware update pre-checks
+  import_tasks: lcm_precheck.yml
+  when:
+    - nutanix_lcm_run_precheck
+    - nutanix_lcm_update_recommendations.json.data.entity_update_spec_list | default([]) | length > 0
+
+- name: Update progress check delay for firmware updates
+  set_fact:
+    delay: 3600
+
+- name: Run LCM firmware update
+  import_tasks: lcm_update.yml
+  when:
+    - nutanix_lcm_update_recommendations.json.data.entity_update_spec_list | default([]) | length > 0

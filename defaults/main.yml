@@ -1,0 +1,15 @@
+---
+# defaults file for nutanix-ansible-galaxy-role-lcm
+nutanix_host: ""
+nutanix_username: ""
+nutanix_password: ""
+nutanix_port: 9440
+validate_certs: false
+nutanix_debug: false
+nutanix_lcm_run_inventory: true
+nutanix_lcm_run_software_updates: true
+nutanix_lcm_software_to_update: []
+nutanix_lcm_run_firmware_updates: true
+nutanix_lcm_run_precheck: true
+nutanix_lcm_retries: 20
+nutanix_lcm_delay: 300

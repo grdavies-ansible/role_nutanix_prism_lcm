@@ -1,0 +1,41 @@
+---
+# tasks file for nutanix-ansible-galaxy-role-lcm
+- name: Setup connection to Nutanix API
+  ansible.builtin.include_tasks: setup_api.yml
+
+- name: Test LCM API
+  include_tasks: test_api.yml
+
+- name: Inputs for initial inventory task (to initiate LCM upgrade)
+  include_tasks: genesis_inventory.yml
+  when:
+    - nutanix_lcm_api_test is failed
+    - nutanix_lcm_run_inventory
+
+- name: Re-test LCM API
+  include_tasks: test_api.yml
+  when: nutanix_lcm_api_test is failed
+
+- name: LCM API not available
+  ansible.builtin.fail:
+    msg: "LCM API did not become available following the LCM inventory task. Check your LCM repository settings and try again.."
+  when: nutanix_lcm_api_test is failed
+
+- name: Inputs for LCM inventory task
+  include_tasks: api_inventory.yml
+  when:
+    - nutanix_lcm_api_test is not failed
+    - nutanix_lcm_initial_inventory_task_status is not defined
+    - nutanix_lcm_run_inventory
+
+- name: Inputs for LCM software update task
+  include_tasks: update_software.yml
+  when:
+    - nutanix_lcm_api_test is not failed
+    - nutanix_lcm_run_software_updates
+
+- name: Inputs for LCM firmware update task
+  include_tasks: update_firmware.yml
+  when:
+    - nutanix_lcm_api_test is not failed
+    - nutanix_lcm_run_firmware_updates
