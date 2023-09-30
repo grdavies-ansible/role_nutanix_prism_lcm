@@ -1,3 +1,5 @@
 ---
 - name: grdavies.role_nutanix_prism_api
+  version: "1.2.0"
 - name: grdavies.role_nutanix_prism_monitor_task
+  version: "1.1.1"
