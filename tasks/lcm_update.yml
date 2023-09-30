@@ -1,56 +1,106 @@
 ---
+- name: Debug role_nutanix_prism_lcm_update_task_debug.json
+  debug:
+    var: role_nutanix_prism_lcm_update_task_debug.json
+  when:
+    - role_nutanix_prism_lcm_debug
+
+- name: Set role_nutanix_prism_lcm_update_task_length
+  ansible.builtin.set_fact:
+    role_nutanix_prism_lcm_update_task_length: "{{ role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs | default(['',]) | length | int }}"
+
+- name: Debug role_nutanix_prism_lcm_update_task_length
+  debug:
+    var: role_nutanix_prism_lcm_update_task_length | type_debug
+  when:
+    - role_nutanix_prism_lcm_debug
+
+- name: Set role_nutanix_prism_lcm_update_task_retry_multiplier
+  ansible.builtin.set_fact:
+    role_nutanix_prism_lcm_update_task_retry_multiplier: "{{ role_nutanix_prism_lcm_update_task_length | int }}"
+
+- name: Debug role_nutanix_prism_lcm_update_task_retry_multiplier
+  debug:
+    var: role_nutanix_prism_lcm_update_task_retry_multiplier
+  when:
+    - role_nutanix_prism_lcm_debug
+
+- name: Debug role_nutanix_prism_lcm_task_retries
+  debug:
+    var: role_nutanix_prism_lcm_task_retries
+  when:
+    - role_nutanix_prism_lcm_debug
+
+- name: Debug (role_nutanix_prism_lcm_task_retries * role_nutanix_prism_lcm_update_task_retry_multiplier) | int
+  debug:
+    msg: "{{ (role_nutanix_prism_lcm_task_retries * role_nutanix_prism_lcm_update_task_retry_multiplier | int) | int }}"
+  when:
+    - role_nutanix_prism_lcm_debug
+
+- name: Debug role_nutanix_prism_lcm_delay | int
+  debug:
+    msg: "{{ role_nutanix_prism_lcm_delay | int }}"
+  when:
+    - role_nutanix_prism_lcm_debug
+
 - name: LCM update
   uri:
-    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/operations/$actions/performUpdate"
+    url: "https://{{ role_nutanix_prism_api_url_base }}/api/lcm/v4.0.a1/operations/$actions/performUpdate"
     method: POST
-    validate_certs: "{{ validate_certs }}"
+    validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs }}"
     body_format: json
     body:
-      entityUpdateSpecs: "{{ nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
+      entityUpdateSpecs: "{{ role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
     headers:
-      Authorization: "{{ nutanix_api_auth }}"
+      Authorization: "{{ role_nutanix_prism_api_auth_string_b64 }}"
     status_code: 200
     return_content: true
-  register: nutanix_lcm_update
+  register: role_nutanix_prism_lcm_update_task
   ignore_errors: false
 
-- name: Debug nutanix_lcm_update.json
+- name: Debug role_nutanix_prism_lcm_update_task.json
   debug:
-    var: nutanix_lcm_update.json
+    var: role_nutanix_prism_lcm_update_task.json
   when:
-    - nutanix_debug
+    - role_nutanix_prism_lcm_debug
 
 - name: Debug task status url
   debug:
-    msg: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/tasks/{{ nutanix_lcm_update.json.data.extId }}"
+    msg: "https://{{ role_nutanix_prism_api_url_base }}/api/lcm/v4.0.a1/resources/tasks/{{ role_nutanix_prism_lcm_update_task.json.data.extId }}"
   when:
-    - nutanix_debug
+    - role_nutanix_prism_lcm_debug
 
 - name: Checking LCM update task status
   uri:
-    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/tasks/{{ nutanix_lcm_update.json.data.extId }}"
+    url: "https://{{ role_nutanix_prism_api_url_base }}/api/lcm/v4.0.a1/resources/tasks/{{ role_nutanix_prism_lcm_update_task.json.data.extId }}"
     method: GET
-    validate_certs: "{{ validate_certs }}"
+    validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs }}"
     status_code: 200
     headers:
-      Authorization: "{{ nutanix_api_auth }}"
-  register: nutanix_lcm_update_task_debug
-
-- name: Debug nutanix_lcm_update_task_debug.json
-  debug:
-    var: nutanix_lcm_update_task_debug.json
-  when:
-    - nutanix_debug
+      Authorization: "{{ role_nutanix_prism_api_auth_string_b64 }}"
+  register: role_nutanix_prism_lcm_update_task_debug
 
 - name: Wait for LCM update task to complete
   ansible.builtin.import_role:
     name: grdavies.role_nutanix_prism_monitor_task
   vars:
-    nutanix_task_uuid: "{{ nutanix_lcm_update.json.data.extId }}"
-    nutanix_task_retries: "{{ nutanix_lcm_retries * nutanix_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length }}"
-    nutanix_task_retry_delay: "{{ nutanix_lcm_delay }}"
-    nutanix_task_allow_failure: true
+    role_nutanix_prism_monitor_task_host: "{{ role_nutanix_prism_lcm_host }}"
+    role_nutanix_prism_monitor_task_username: "{{ role_nutanix_prism_lcm_host_username }}"
+    role_nutanix_prism_monitor_task_password: "{{ role_nutanix_prism_lcm_host_password }}"
+    role_nutanix_prism_monitor_task_port: "{{ role_nutanix_prism_lcm_host_port | default(omit) }}"
+    role_nutanix_prism_monitor_task_validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs | default(omit) }}"
+    role_nutanix_prism_monitor_task_debug: "{{ role_nutanix_prism_lcm_debug | default(omit) }}"
+    role_nutanix_prism_monitor_task_uuid: "{{ role_nutanix_prism_lcm_update_task.json.data.extId }}"
+    role_nutanix_prism_monitor_task_retries: "{{ (role_nutanix_prism_lcm_task_retries * role_nutanix_prism_lcm_update_task_retry_multiplier | int) | int }}"
+    role_nutanix_prism_monitor_task_retry_delay: "{{ role_nutanix_prism_lcm_delay | int }}"
+    role_nutanix_prism_monitor_task_allow_failure: true
 
 - name: Set nutanix_lcm_update_task
   set_fact:
-    nutanix_lcm_update_task: "{{ monitored_task }}"
+    nutanix_lcm_update_task: "{{ role_nutanix_prism_monitor_task_result }}"
+
+- name: Debug nutanix_lcm_update_task
+  debug:
+    var: nutanix_lcm_update_task
+  when:
+    - nutanix_lcm_update_task

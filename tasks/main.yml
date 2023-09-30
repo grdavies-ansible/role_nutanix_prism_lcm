@@ -1,7 +1,15 @@
 ---
-# tasks file for nutanix-ansible-galaxy-role-lcm
+# tasks file for role_nutanix_prism_lcm
 - name: Setup connection to Nutanix API
-  ansible.builtin.include_tasks: setup_api.yml
+  ansible.builtin.include_role:
+    name: grdavies.role_nutanix_prism_api
+  vars:
+    role_nutanix_prism_api_host: "{{ role_nutanix_prism_lcm_host }}"
+    role_nutanix_prism_api_username: "{{ role_nutanix_prism_lcm_host_username }}"
+    role_nutanix_prism_api_password: "{{ role_nutanix_prism_lcm_host_password }}"
+    role_nutanix_prism_api_port: "{{ role_nutanix_prism_lcm_host_port | default(omit) }}"
+    role_nutanix_prism_api_validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs | default(omit) }}"
+    role_nutanix_prism_api_debug: "{{ role_nutanix_prism_lcm_debug | default(omit) }}"
 
 - name: Test LCM API
   include_tasks: test_api.yml
@@ -9,33 +17,33 @@
 - name: Inputs for initial inventory task (to initiate LCM upgrade)
   include_tasks: genesis_inventory.yml
   when:
-    - nutanix_lcm_api_test is failed
-    - nutanix_lcm_run_inventory
+    - role_nutanix_prism_lcm_api_test is failed
+    - role_nutanix_prism_lcm_run_inventory
 
 - name: Re-test LCM API
   include_tasks: test_api.yml
-  when: nutanix_lcm_api_test is failed
+  when: role_nutanix_prism_lcm_api_test is failed
 
 - name: LCM API not available
   ansible.builtin.fail:
     msg: "LCM API did not become available following the LCM inventory task. Check your LCM repository settings and try again.."
-  when: nutanix_lcm_api_test is failed
+  when: role_nutanix_prism_lcm_api_test is failed
 
 - name: Inputs for LCM inventory task
   include_tasks: api_inventory.yml
   when:
-    - nutanix_lcm_api_test is not failed
-    - nutanix_lcm_initial_inventory_task_status is not defined
-    - nutanix_lcm_run_inventory
+    - role_nutanix_prism_lcm_api_test is not failed
+    - role_nutanix_prism_lcm_initial_inventory_task_status is not defined
+    - role_nutanix_prism_lcm_run_inventory
 
 - name: Inputs for LCM software update task
   include_tasks: update_software.yml
   when:
-    - nutanix_lcm_api_test is not failed
-    - nutanix_lcm_run_software_updates
+    - role_nutanix_prism_lcm_api_test is not failed
+    - role_nutanix_prism_lcm_run_software_updates
 
 - name: Inputs for LCM firmware update task
   include_tasks: update_firmware.yml
   when:
-    - nutanix_lcm_api_test is not failed
-    - nutanix_lcm_run_firmware_updates
+    - role_nutanix_prism_lcm_api_test is not failed
+    - role_nutanix_prism_lcm_run_firmware_updates

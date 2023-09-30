@@ -1,6 +1,6 @@
 ---
 # vars file for nutanix-ansible-galaxy-role-lcm
-software_target_entity_list:
+role_nutanix_prism_lcm_sw_target_entity_list:
   - entityClass: "Cluster Service"
     entityModel: "Foundation"
   - entityClass: "Cluster Service"

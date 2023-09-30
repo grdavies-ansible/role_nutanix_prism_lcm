@@ -1,15 +1,15 @@
 ---
 # defaults file for nutanix-ansible-galaxy-role-lcm
-nutanix_host: ""
-nutanix_username: ""
-nutanix_password: ""
-nutanix_port: 9440
-validate_certs: false
-nutanix_debug: false
-nutanix_lcm_run_inventory: true
-nutanix_lcm_run_software_updates: true
-nutanix_lcm_software_to_update: []
-nutanix_lcm_run_firmware_updates: true
-nutanix_lcm_run_precheck: true
-nutanix_lcm_retries: 20
-nutanix_lcm_delay: 300
+role_nutanix_prism_lcm_host: ""
+role_nutanix_prism_lcm_host_username: ""
+role_nutanix_prism_lcm_host_password: ""
+role_nutanix_prism_lcm_host_port: 9440
+role_nutanix_prism_lcm_host_validate_certs: false
+role_nutanix_prism_lcm_debug: false
+role_nutanix_prism_lcm_run_inventory: true
+role_nutanix_prism_lcm_run_software_updates: true
+role_nutanix_prism_lcm_sw_to_update: []
+role_nutanix_prism_lcm_run_firmware_updates: true
+role_nutanix_prism_lcm_run_precheck: true
+role_nutanix_prism_lcm_task_retries: 20
+role_nutanix_prism_lcm_delay: 300

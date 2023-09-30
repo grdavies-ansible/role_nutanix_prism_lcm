@@ -1,21 +1,21 @@
 ---
 - name: Test LCM API
   uri:
-    url: "https://{{ nutanix_host }}:{{ nutanix_port }}/api/lcm/v4.0.a1/resources/config"
+    url: "https://{{ role_nutanix_prism_api_url_base }}/api/lcm/v4.0.a1/resources/config"
     method: GET
-    validate_certs: "{{ validate_certs }}"
+    validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs }}"
     body_format: json
     headers:
-      Authorization: "{{ nutanix_api_auth }}"
+      Authorization: "{{ role_nutanix_prism_api_auth_string_b64 }}"
     status_code: 200
     return_content: true
-  register: nutanix_lcm_api_test
+  register: role_nutanix_prism_lcm_api_test
   ignore_errors: true
   no_log: true
 
-- name: Debug nutanix_lcm_api_test
+- name: Debug role_nutanix_prism_lcm_api_test
   debug:
-    var: nutanix_lcm_api_test.json
+    var: role_nutanix_prism_lcm_api_test.json
   when:
-    - nutanix_debug
-    - nutanix_lcm_api_test is defined
+    - role_nutanix_prism_lcm_debug
+    - role_nutanix_prism_lcm_api_test is defined

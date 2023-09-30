@@ -1,0 +1,3 @@
+---
+- name: grdavies.role_nutanix_prism_api
+- name: grdavies.role_nutanix_prism_monitor_task
