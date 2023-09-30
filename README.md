@@ -10,12 +10,13 @@ This Ansible role invokes LCM to perform an inventory operation followed by soft
 | role_nutanix_prism_lcm_host_username        | yes      |         |                                                                                        | A valid username with appropriate rights to access the Nutanix API.                                                                                                                                          |
 | role_nutanix_prism_lcm_host_password        | yes      |         |                                                                                        | A valid password for the supplied username.                                                                                                                                                                  |
 | role_nutanix_prism_lcm_host_port            | no       | 9440    |                                                                                        | The Prism TCP port.                                                                                                                                                                                          |
-| role_nutanix_prism_lcm_host_validate_certs  | no       | no      | yes / no                                                                               | Whether to check if Prism UI certificates are valid.                                                                                                                                                         |
-| role_nutanix_prism_lcm_run_inventory        | no       | true    | true or false                                                                          | Whether to run an inventory prior to installing updates.                                                                                                                                                     |
-| role_nutanix_prism_lcm_run_software_updates | no       | true    | true or false                                                                          | Whether to install software updates.                                                                                                                                                                         |
+| role_nutanix_prism_lcm_host_validate_certs  | no       | false   | true / false                                                                           | Whether to check if Prism UI certificates are valid.                                                                                                                                                         |
+| role_nutanix_prism_lcmdebug                 | no       | false   | true / false                                                                           | Enable debug logging.                                                                                                                                                                                        |
+| role_nutanix_prism_lcm_run_inventory        | no       | true    | true / false                                                                           | Whether to run an inventory prior to installing updates.                                                                                                                                                     |
+| role_nutanix_prism_lcm_run_software_updates | no       | true    | true / false                                                                           | Whether to install software updates.                                                                                                                                                                         |
 | role_nutanix_prism_lcm_sw_to_update         | no       | []      | ["NCC", "Cluster Maintenance Utilities", "Foundation", "AHVhypervisor", "AOS", "FSM"]  | If not defined then all available software updates will be installed. If one or more software choices are provided then only they will be updated, if not choices are provided all software will be updated. |
-| role_nutanix_prism_lcm_run_firmware_updates | no       | true    | true or false                                                                          | Whether to install firmware updates.                                                                                                                                                                         |
-| role_nutanix_prism_lcm_run_precheck         | no       | true    | true or false                                                                          | Whether to run a LCM precheck prior to installing updates.                                                                                                                                                   |
+| role_nutanix_prism_lcm_run_firmware_updates | no       | true    | true / false                                                                           | Whether to install firmware updates.                                                                                                                                                                         |
+| role_nutanix_prism_lcm_run_precheck         | no       | true    | true / false                                                                           | Whether to run a LCM precheck prior to installing updates.                                                                                                                                                   |
 | role_nutanix_prism_lcm_task_retries         | no       | 5       |                                                                                        | Number of progress checks                                                                                                                                                                                    |
 | role_nutanix_prism_lcm_delay                | no       | 300     |                                                                                        | Progress check interval                                                                                                                                                                                      |
 
@@ -28,7 +29,7 @@ This Ansible role invokes LCM to perform an inventory operation followed by soft
 
 This example playbook will invoke LCM on a specific cluster running only a software upgrade for "NCC"
 
-```
+```YAML
 - hosts: localhost
  roles:
    - role: grdavies.nutanix-role-prism-lcm
@@ -42,7 +43,6 @@ This example playbook will invoke LCM on a specific cluster running only a softw
 ```
 
 ## License
-
 
 See LICENSE.md
 
