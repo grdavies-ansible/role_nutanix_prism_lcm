@@ -4,6 +4,7 @@ galaxy_info:
   author: Ross Davies
   description: Role to invoke Nutanix LCM to deploy software and firmware upgrades
   company: N/A
+  github_branch: master
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
