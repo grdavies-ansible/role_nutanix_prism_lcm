@@ -7,7 +7,7 @@
     body_format: json
     headers:
       Authorization: "{{ role_nutanix_prism_api_auth_string_b64 }}"
-    status_code: 200
+    status_code: 202
     return_content: true
   register: role_nutanix_prism_lcm_inventory_result
   ignore_errors: false
