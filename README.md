@@ -81,7 +81,6 @@ This example playbook will invoke LCM on a cluster running at 10.38.185.37 and u
     role_nutanix_prism_lcm_run_software_updates: true
 ```
 
-
 This example playbook will invoke LCM on a NCI cluster running at 10.38.185.37 to update "NCC" only
 
 ```YAML
