@@ -36,6 +36,16 @@
     - role_nutanix_prism_lcm_initial_inventory_task_status is not defined
     - role_nutanix_prism_lcm_run_inventory
 
+- name: Include Prism Element default update list
+  include_vars: vars/nci.yml
+  when:
+    - role_nutanix_prism_api_endpoint_type != 'pc'
+
+- name: Include Prism Central default update list
+  include_vars: vars/ncm.yml
+  when:
+    - role_nutanix_prism_api_endpoint_type == 'pc'
+
 - name: Inputs for LCM software update task
   include_tasks: update_software.yml
   when:

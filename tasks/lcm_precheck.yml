@@ -9,7 +9,9 @@
       entityUpdateSpecs: "{{ role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
     headers:
       Authorization: "{{ role_nutanix_prism_api_auth_string_b64 }}"
-    status_code: 200
+    status_code:
+      - 200
+      - 202
     return_content: true
   register: role_nutanix_prism_lcm_update_precheck_task
   ignore_errors: false
@@ -27,7 +29,9 @@
       /{{ role_nutanix_prism_lcm_update_precheck_task.json.data.extId }}"
     method: GET
     validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs }}"
-    status_code: 200
+    status_code:
+      - 200
+      - 201
     headers:
       Authorization: "{{ role_nutanix_prism_api_auth_string_b64 }}"
   register: role_nutanix_prism_lcm_update_precheck_task_debug

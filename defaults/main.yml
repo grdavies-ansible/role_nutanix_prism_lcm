@@ -13,3 +13,4 @@ role_nutanix_prism_lcm_run_firmware_updates: true
 role_nutanix_prism_lcm_run_precheck: true
 role_nutanix_prism_lcm_task_retries: 20
 role_nutanix_prism_lcm_delay: 300
+role_nutanix_prism_lcm_allow_skipped: false

@@ -4,15 +4,15 @@
   roles:
     - role: ../..
   vars:
-    role_nutanix_prism_lcm_host: 10.42.113.37
+    role_nutanix_prism_lcm_host: 10.42.4.37
     role_nutanix_prism_lcm_host_username: admin
-    role_nutanix_prism_lcm_host_password: nx2Tech278!
+    role_nutanix_prism_lcm_host_password: nx2Tech831!
     role_nutanix_prism_lcm_debug: true
-    role_nutanix_prism_lcm_run_inventory: true
+    role_nutanix_prism_lcm_run_inventory: false
     role_nutanix_prism_lcm_run_firmware_updates: false
     role_nutanix_prism_lcm_run_software_updates: true
     role_nutanix_prism_lcm_sw_to_update:
-      - "NCC"
-      - "Cluster Maintenance Utilities"
-      - "Foundation"
-      - "FSM"
+    #   - "Objects Manager"
+    #   - "Objects Service"
+    #   - "Foundation"
+    #   - "FSM"

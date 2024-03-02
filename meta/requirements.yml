@@ -5,3 +5,6 @@
 - name: grdavies.role_nutanix_prism_monitor_task
   src: https://github.com/grdavies-ansible/role_nutanix_prism_monitor_task
   version: "1.1.11"
+- name: community.general
+  src: https://github.com/ansible-collections/community.general
+  version: "8.4.0"

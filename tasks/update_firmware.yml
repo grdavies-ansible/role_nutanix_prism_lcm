@@ -29,7 +29,9 @@
     body: "{{ role_nutanix_prism_lcm_update_recommendations.json.data.entity_update_spec_list }}"
     headers:
       Authorization: "{{ role_nutanix_prism_api_auth_string_b64sm_api_auth_string_b64 }}"
-    status_code: 200
+    status_code:
+      - 200
+      - 201
     return_content: true
   register: role_nutanix_prism_lcm_update_plan
   ignore_errors: false

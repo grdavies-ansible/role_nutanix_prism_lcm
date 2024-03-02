@@ -1,0 +1,15 @@
+---
+# vars file for nutanix-ansible-galaxy-role-lcm
+role_nutanix_prism_lcm_sw_target_entity_list:
+  - class: "Cluster Service"
+    entity: "Foundation"
+  - class: "Cluster Service"
+    entity: "Cluster Maintenance Utilities"
+  - class: "Hypervisor"
+    entity: "AHV hypervisor"
+  - class: "Core Cluster"
+    entity: "AOS"
+  - class: "Core Cluster"
+    entity: "NCC"
+  - class: "Core Cluster"
+    entity: "FSM"

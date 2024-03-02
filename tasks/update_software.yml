@@ -1,26 +1,46 @@
 ---
-- name: Set LCM update list to specific software
-  set_fact:
-    role_nutanix_prism_lcm_sw_update_list: "{{ role_nutanix_prism_lcm_sw_update_list | default([]) + [item] }}"
-  loop: "{{ role_nutanix_prism_lcm_sw_target_entity_list }}"
+- name: Debug role_nutanix_prism_lcm_sw_to_update | default([])
+  ansible.builtin.debug:
+    var: role_nutanix_prism_lcm_sw_to_update | default([])
+  when:
+    - role_nutanix_prism_lcm_debug
+
+- name: Create role_nutanix_prism_lcm_sw_list
+  ansible.builtin.set_fact:
+    role_nutanix_prism_lcm_sw_list: "{{ role_nutanix_prism_lcm_sw_to_update | community.general.lists_mergeby(role_nutanix_prism_lcm_sw_target_entity_list, 'entity', recursive=True, list_merge='replace') }}"
   when:
     - role_nutanix_prism_lcm_sw_to_update is defined
-    - item.entityModel in role_nutanix_prism_lcm_sw_to_update | default([])
 
-- name: Debug role_nutanix_prism_lcm_sw_update_list
-  debug:
-    var: role_nutanix_prism_lcm_sw_update_list
+- name: Debug role_nutanix_prism_lcm_sw_list | default([])
+  ansible.builtin.debug:
+    var: role_nutanix_prism_lcm_sw_list | default([])
+  when:
+    - role_nutanix_prism_lcm_debug
+
+
+- name: Set LCM update list to specific software
+  ansible.builtin.set_fact:
+    role_nutanix_prism_lcm_sw_update_list: "{{ role_nutanix_prism_lcm_sw_update_list | default([]) + [item] }}"
+  loop: "{{ role_nutanix_prism_lcm_sw_list }}"
+  when:
+    - role_nutanix_prism_lcm_sw_to_update is defined
+    - item.entity in role_nutanix_prism_lcm_sw_to_update | default([]) | map(attribute='entity')
+
+
+- name: Debug role_nutanix_prism_lcm_sw_update_list | default([])
+  ansible.builtin.debug:
+    var: role_nutanix_prism_lcm_sw_update_list | default([])
   when:
     - role_nutanix_prism_lcm_debug
 
 - name: Debug update recommendations POST body
-  debug:
+  ansible.builtin.debug:
     msg: "{{ lookup('template', 'lcm-req.j2') | from_yaml | to_json }}"
   when:
     - role_nutanix_prism_lcm_debug
 
 - name: Get LCM software update recommendations
-  uri:
+  ansible.builtin.uri:
     url: "https://{{ role_nutanix_prism_api_url_base }}/api/lcm/v4.0.a1/resources/recommendations"
     method: POST
     validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs }}"
@@ -34,19 +54,29 @@
   ignore_errors: false
 
 - name: Debug role_nutanix_prism_lcm_update_recommendations.json
-  debug:
+  ansible.builtin.debug:
     var: role_nutanix_prism_lcm_update_recommendations.json
   when:
     - role_nutanix_prism_lcm_debug
 
+- name: Error Defined entities are being skipped. Check role_nutanix_prism_lcm_sw_to_update variable.
+  ansible.builtin.fail:
+    msg: "{{ item.message }}"
+  loop: "{{ role_nutanix_prism_lcm_update_recommendations.json.data.skippedEntities }}"
+  loop_control:
+    label: "{{ item.targetEntity.entityModel }}"
+  when:
+    - role_nutanix_prism_lcm_update_recommendations.json.data.skippedEntities | default([])
+    - not role_nutanix_prism_lcm_allow_skipped
+
 - name: Debug role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs
-  debug:
+  ansible.builtin.debug:
     msg: "{{ role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
   when:
     - role_nutanix_prism_lcm_debug
 
 - name: Generate software update plan
-  uri:
+  ansible.builtin.uri:
     url: "https://{{ role_nutanix_prism_api_url_base }}/api/lcm/v4.0.a1/resources/plan"
     method: POST
     validate_certs: "{{ role_nutanix_prism_lcm_host_validate_certs }}"
@@ -55,7 +85,9 @@
       entityUpdateSpecs: "{{ role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs }}"
     headers:
       Authorization: "{{ role_nutanix_prism_api_auth_string_b64 }}"
-    status_code: 200
+    status_code:
+      - 200
+      - 201
     return_content: true
   register: role_nutanix_prism_lcm_update_plan
   ignore_errors: false
@@ -63,13 +95,13 @@
     - role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length > 0
 
 - name: Debug role_nutanix_prism_lcm_update_plan
-  debug:
+  ansible.builtin.debug:
     var: role_nutanix_prism_lcm_update_plan.json
   when:
     - role_nutanix_prism_lcm_debug
 
 - name: Anticipated LCM actions during software upgrade
-  debug:
+  ansible.builtin.debug:
     msg: >-
       "{{ role_nutanix_prism_lcm_update_plan.json.data.hostUpgradePlans | default ([])
       | json_query('[].action') | unique | list }}"
@@ -77,11 +109,11 @@
     - role_nutanix_prism_lcm_update_plan.json.data.hostUpgradePlans | default([]) | length > 0
 
 - name: Run LCM software update pre-checks
-  import_tasks: lcm_precheck.yml
+  ansible.builtin.import_tasks: lcm_precheck.yml
   when:
     - role_nutanix_prism_lcm_run_precheck
     - role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length > 0
 
 - name: Run LCM software update
-  import_tasks: lcm_update.yml
+  ansible.builtin.import_tasks: lcm_update.yml
   when: role_nutanix_prism_lcm_update_recommendations.json.data.entityUpdateSpecs | default([]) | length > 0

@@ -1,5 +1,15 @@
 {% if role_nutanix_prism_lcm_sw_update_list | default([]) | length > 0%}
-targetEntities: {{ role_nutanix_prism_lcm_sw_update_list }}
+targetEntities: [
+{% for sw_item in role_nutanix_prism_lcm_sw_update_list %}
+    {
+        entityClass: {{ sw_item.class }},
+        entityModel: {{ sw_item.entity }},
+        {% if sw_item.location is defined %}locationId: {{ sw_item.location }},{% endif %}
+        {% if sw_item.service_name is defined %}id: {{ sw_item.service_name }},{% endif %}
+        {% if sw_item.version is defined %}version: {{ sw_item.version }},{% endif %}
+    },
+{% endfor %}
+]
 {% else %}
 entityTypes: ["software"]
 {% endif %}
