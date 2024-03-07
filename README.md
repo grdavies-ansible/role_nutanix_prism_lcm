@@ -25,7 +25,7 @@ This Ansible role invokes LCM to perform an inventory operation followed by soft
 | Variable                                    | Required | Default | Choices                                                                                | Comments                                                                                                                                                                                                     |
 |---------------------------------------------|----------|---------|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | entity                                      | yes      |         | See 'Prism Element Entity Names' and 'Prism Central/NCM Entity Names' below            |                                                                                                                                                                                                              |
-| version                                     | no       | latest  |                                                                                        | Is blank version will default to the latest version available to LCM                                                                                                                                         |
+| version                                     | no       |         |                                                                                        | If left blank version will default to the latest available version available to LCM. If a version is provided then the module will be upgraded to the specified version.                                     |
 | service_name                                | no       | None    |                                                                                        | This is required to apply updates to cluster managed entities such as Object Clusters or Nutanix Kubernetes Engine Clusters                                                                                  |
 
 #### Prism Element Entity Names
@@ -107,7 +107,6 @@ This example playbook will invoke LCM on Prism Central running only a software u
     role_nutanix_prism_lcm_host_username: admin
     role_nutanix_prism_lcm_host_password: nx2Tech165!
     role_nutanix_prism_lcm_run_firmware_updates: false
-    role_nutanix_prism_lcm_sw_to_update:
     role_nutanix_prism_lcm_sw_to_update:
       - entity: "Objects Manager"
         version: "3.5.0.1"
